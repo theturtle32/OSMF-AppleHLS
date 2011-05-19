@@ -39,6 +39,8 @@
 	{
 		override public function canHandleResource(resource:MediaResourceBase):Boolean
 		{
+			// really should check the resource to see if it is a URL resource that ends in m3u8, then it can be tied
+			// to the factory via a plugin and do the right thing
 			return true; //(resource.getMetadataValue(MetadataNamespaces.HTTP_STREAMING_METADATA) as Metadata) != null;
 		}
 		
