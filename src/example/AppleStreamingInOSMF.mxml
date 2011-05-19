@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" resize="onResize()" applicationComplete="onApplicationComplete()">
+	<mx:HRule width="100%"/>
+	<mx:UIComponent id="videoUI" width="100%" height="100%"/>
+	<mx:HRule width="100%"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			import at.matthew.httpstreaming.HTTPStreamingM3U8NetLoader;
+			import org.osmf.media.MediaPlayer;
+			import org.osmf.elements.VideoElement;
+			import org.osmf.media.URLResource;
+			import org.osmf.containers.MediaContainer;
+			private var osmfplayer:OSMFPlayer;
+			private var mediaPlayer:MediaPlayer;
+			private var container:MediaContainer = null;
+			
+			
+			private function onApplicationComplete():void
+			{
+				// Create the container class that displays the media.
+				container = new MediaContainer();
+				videoUI.addChild(container);
+				
+				// Create the resource to play.
+				//var resource:URLResource = new URLResource("http://qthttp.akamai.com.edgesuite.net/iphone_demo/Video_Content/martha_stewart/blueberry_pies/all.m3u8"); 
+			 	// var resource:URLResource = new URLResource("http://qthttp.apple.com.edgesuite.net/1103pijanbdvaaj/sl_vod.m3u8"); 
+			 	var resource:URLResource = new URLResource("http://encoding.babelcentral.com.s3.amazonaws.com/pronunciation2/iphonestream.m3u8");
+			 	var loader:HTTPStreamingM3U8NetLoader = new HTTPStreamingM3U8NetLoader();  // haven't yet got a plugin for the factory, so we need to explictly specify the loader
+	 				
+				// Create the MediaElement and add it to our container class.
+				var videoElement:VideoElement =  new VideoElement(resource , loader);
+				container.addMediaElement(videoElement);
+							
+				// Set the MediaElement on a MediaPlayer.  Because autoPlay
+				// defaults to true, playback begins immediately.
+				mediaPlayer = new MediaPlayer();
+				mediaPlayer.media = videoElement;
+				mediaPlayer.autoDynamicStreamSwitch = true;
+			}
+			
+			private function onResize():void
+			{
+				if(container)
+				{
+					container.width = this.width;
+					container.height = this.height;
+				}
+			}
+			
+			
+		]]>
+	</mx:Script>
+</mx:Application>
