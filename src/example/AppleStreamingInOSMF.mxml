@@ -23,9 +23,8 @@
 				videoUI.addChild(container);
 				
 				// Create the resource to play.
-				//var resource:URLResource = new URLResource("http://qthttp.akamai.com.edgesuite.net/iphone_demo/Video_Content/martha_stewart/blueberry_pies/all.m3u8"); 
+				var resource:URLResource = new URLResource("http://qthttp.akamai.com.edgesuite.net/iphone_demo/Video_Content/martha_stewart/blueberry_pies/all.m3u8"); 
 			 	// var resource:URLResource = new URLResource("http://qthttp.apple.com.edgesuite.net/1103pijanbdvaaj/sl_vod.m3u8"); 
-			 	var resource:URLResource = new URLResource("http://encoding.babelcentral.com.s3.amazonaws.com/pronunciation2/iphonestream.m3u8");
 			 	var loader:HTTPStreamingM3U8NetLoader = new HTTPStreamingM3U8NetLoader();  // haven't yet got a plugin for the factory, so we need to explictly specify the loader
 	 				
 				// Create the MediaElement and add it to our container class.
