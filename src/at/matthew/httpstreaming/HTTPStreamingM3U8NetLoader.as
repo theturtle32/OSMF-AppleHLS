@@ -49,7 +49,7 @@
 			var fileHandler:HTTPStreamingFileHandlerBase = new HTTPStreamingMP2TSFileHandler();
 			var indexHandler:HTTPStreamingIndexHandlerBase = new HTTPStreamingM3U8IndexHandler();
 			var httpNetStream:HTTPNetStream = new HTTPNetStream(connection, indexHandler, fileHandler);
-			httpNetStream.manualSwitchMode = true; // set to false to use internal logic until we get OSMF to do it right
+			httpNetStream.manualSwitchMode = false; // set to false to use internal logic until we get OSMF to do it right
 			httpNetStream.indexInfo = new HTTPStreamingIndexInfoString(resource.url);
 			return httpNetStream;
 		}

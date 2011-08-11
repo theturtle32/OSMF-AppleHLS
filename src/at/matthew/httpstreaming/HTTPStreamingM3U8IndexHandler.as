@@ -27,10 +27,15 @@
 	import __AS3__.vec.Vector;
 	
 	import flash.net.URLRequest;
-	
 	import org.osmf.events.HTTPStreamingIndexHandlerEvent;
 	import org.osmf.net.httpstreaming.HTTPStreamRequest;
 	import org.osmf.net.httpstreaming.HTTPStreamingIndexHandlerBase;
+	import org.osmf.net.httpstreaming.HTTPStreamingUtils;
+	import org.osmf.net.httpstreaming.flv.FLVTagScriptDataObject;
+	import org.osmf.events.TimeEvent;
+	import org.osmf.traits.TimeTrait;
+
+	
 
 	[Event(name="notifyIndexReady", type="org.osmf.events.HTTPStreamingFileIndexHandlerEvent")]
 	[Event(name="notifyRates", type="org.osmf.events.HTTPStreamingFileIndexHandlerEvent")]
@@ -46,13 +51,11 @@
 		private var _loadingCount:int;
 		private var _numRates:int;
 		private var _segment:int;
-		
-		private var _indexString:String;
+		private var _absoluteSegment:int;
+		private var _indexString:String; 
 		
 		override public function initialize(indexInfo:Object):void
 		{
-
-			
 			if(indexInfo is String)
 			{
 				_indexString = String(indexInfo);
@@ -83,14 +86,17 @@
 		{
 			if (indexContext == null)
 			{
-				_loadingCount = 0;	
+				_loadingCount = 0;
 				_numRates = 0;
 			}
 			else
 			{
 				--_loadingCount;
+				if (_absoluteSegment > 0) // we are reloading the manifest, so clear it out first
+					(indexContext as HTTPStreamingM3U8IndexRateItem).clearManifest();
 			}
-			
+
+
 			var lines:Array = String(data).split("\n");
 			
 			if(lines[0] != "#EXTM3U")
@@ -112,13 +118,11 @@
 						// bail out after this line and...
 						i = lines.length+1;
 						
-						// ...dispatch a single sub-load of ourself (yeah, re-fetch the same URL, but it saves typing)
 						var rateItem:HTTPStreamingM3U8IndexRateItem = new HTTPStreamingM3U8IndexRateItem(1000, _indexString);
 						_rateVec[_numRates++] = rateItem;
-						
 						_loadingCount++;
+						dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.REQUEST_LOAD_INDEX, false, false, false, 0, null, null, new URLRequest(_indexString), rateItem, false));				
 						
-						dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.REQUEST_LOAD_INDEX, false, false, false, 0, null, null, new URLRequest(_indexString), rateItem, false));
 					}
 				
 					if(String(lines[i]).indexOf("#EXT-X-STREAM-INF:") == 0)
@@ -126,7 +130,6 @@
 						var offset:int = String(lines[i]).indexOf("BANDWIDTH=");
 						offset += 10;
 						var bw:Number = parseFloat( String(lines[i]).substr(offset));
-						
 						++i;
 						if(i > lines.length)
 							throw new Error("processIndexData: improperly terminated M3U8 file");
@@ -144,10 +147,8 @@
 						
 						rateItem = new HTTPStreamingM3U8IndexRateItem(bw, url);
 						_rateVec[_numRates++] = rateItem;
-						
 						_loadingCount++;
-						
-						dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.REQUEST_LOAD_INDEX, false, false, false, 0, null, null, new URLRequest(url), rateItem, false));
+						dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.REQUEST_LOAD_INDEX, false, false, false, 0, null, null, new URLRequest(url), rateItem, false));					
 					}
 				}
 				else
@@ -170,16 +171,35 @@
 						}
 						
 						var manifestItem:HTTPStreamingM3U8IndexItem = new HTTPStreamingM3U8IndexItem(duration, url);
-						
 						(indexContext as HTTPStreamingM3U8IndexRateItem).addIndexItem(manifestItem);
 					}
+					if(String(lines[i]).indexOf("#EXT-X-ENDLIST") == 0)
+					{
+						//  This is not a live stream
+						(indexContext as HTTPStreamingM3U8IndexRateItem).setLive(false);
+					}
+					if(String(lines[i]).indexOf("#EXT-X-MEDIA-SEQUENCE") == 0)
+					{
+						var sequence:Number = parseFloat(String(lines[i]).substr(22));	//22 is length of "#EXT-X-MEDIA-SEQUENCE:"
+						(indexContext as HTTPStreamingM3U8IndexRateItem).setSequenceNumber(sequence); // Set rateItem.sequenceNumber = sequence;
+					}	
 				}
 			}
+			if (indexContext != null)
+			{
+					notifyTotalDuration((indexContext as HTTPStreamingM3U8IndexRateItem).totalTime, 0, (indexContext as HTTPStreamingM3U8IndexRateItem).live); // FIXME: we don't what rate context (quality level) we are processing, so just return quality 0
+			}
 			
-			if(_loadingCount == 0)
+			if(_loadingCount == 0 && _absoluteSegment == 0) // check for _absoluteSegement to make sure we are not reloading the manifest
 			{
 				_rateVec = _rateVec.sort(HTTPStreamingM3U8IndexRateItem.sortComparison);
-				dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.NOTIFY_INDEX_READY));	
+				if((indexContext as HTTPStreamingM3U8IndexRateItem).live){
+					var initialOffset:Number = (indexContext as HTTPStreamingM3U8IndexRateItem).totalTime - ( 
+							( (indexContext as HTTPStreamingM3U8IndexRateItem).totalTime / (indexContext as HTTPStreamingM3U8IndexRateItem).manifest.length ) * 3); // Pantos spec section 6.3.3
+					dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.NOTIFY_INDEX_READY, false, false, true, initialOffset));
+				} else {
+					dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.NOTIFY_INDEX_READY, false, false, false, 0));
+				}
 				
 				var nameArray:Array = new Array;
 				var rateArray:Array = new Array;
@@ -189,7 +209,9 @@
 					nameArray.push((_rateVec[i]).url);
 					rateArray.push((_rateVec[i]).bw);
 				}
-				dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.NOTIFY_RATES, false, false, false, 0, nameArray, rateArray));	
+				
+				
+				dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.NOTIFY_RATES, false, false, false, 0, nameArray, rateArray));
 			}
 		}
 		
@@ -198,7 +220,6 @@
 			var item:HTTPStreamingM3U8IndexRateItem = _rateVec[quality];
 			var manifest:Vector.<HTTPStreamingM3U8IndexItem> = item.manifest;
 			var i:int;
-
 			for(i = 0; i< manifest.length; i++)
 			{
 				if((time) < manifest[i].startTime)
@@ -208,7 +229,7 @@
 				--i;
 				
 			_segment = i;
-			
+			_absoluteSegment = item.sequenceNumber + _segment; // we also need to set the absolute segment in case we are starting at an offset (live)
 			return getNextFile(quality);	// so as to avoid duplicating code
 		}
 
@@ -217,25 +238,75 @@
 			var item:HTTPStreamingM3U8IndexRateItem = _rateVec[quality];
 			var manifest:Vector.<HTTPStreamingM3U8IndexItem> = item.manifest;
 			var request:HTTPStreamRequest;
+			var i:int;
+			var currentTime:Number = 0;
+
 			
+			if(item.live)
+			{
+				
+				if(_absoluteSegment == 0 && _segment == 0) // Initialize live playback
+				{
+					_absoluteSegment = item.sequenceNumber + _segment;
+				}
+				
+				if(_absoluteSegment != (item.sequenceNumber + _segment)) // We re-loaded the live manifest, need to re-normalize the list
+				{
+					_segment = _absoluteSegment - item.sequenceNumber;
+					if(_segment < 0)
+					{
+						_segment=0;
+						_absoluteSegment = item.sequenceNumber;
+					}
+				}
+				if(_segment >= manifest.length) // Try to force a reload
+				{
+					dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.REQUEST_LOAD_INDEX, false, false, item.live, 0, null, null, new URLRequest(_rateVec[quality].url), _rateVec[quality], false));						
+				} 
+			}
 			
 			if(_segment >= manifest.length)
+			{
 				return null;
+			} 
+			else
+			{
+				request = new HTTPStreamRequest((manifest[_segment]).url);
+				
+				dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.NOTIFY_SEGMENT_DURATION, false, false, item.live, 0, null, null, null, null, false, manifest[_segment].duration ));
+				
+				++_segment;
+				++_absoluteSegment;
+			}
 			
-			request = new HTTPStreamRequest((manifest[_segment]).url);
-			
-
-			dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.NOTIFY_SEGMENT_DURATION, false, false, false, 0, null, null, null, null, false, manifest[_segment].duration ));
-
-			
-			++_segment;
-		
+			if(item.live && _segment >= (manifest.length-1)) {  // Its a live stream and time to reload the manifest
+				// TODO: Pantos spec says we should only refresh the manifest we care about... brute forcing this for now
+				for(i = 0; i<_rateVec.length; i++)
+				{
+					dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.REQUEST_LOAD_INDEX, false, false, item.live, 0, null, null, new URLRequest(_rateVec[i].url), _rateVec[i], false));					
+				}
+			}		
 			return request;
 		}
 		
 		override public function dvrGetStreamInfo(indexInfo:Object):void
 		{
 		}
-	
+		
+		private function notifyTotalDuration(duration:Number, quality:int, live:Boolean):void
+		{
+			var sdo:FLVTagScriptDataObject = new FLVTagScriptDataObject();
+			var metaInfo:Object = metaInfo = new Object();
+			if(!live)
+				metaInfo.duration = duration;
+			else
+				metaInfo.duration = 0;
+
+			sdo.objects = ["onMetaData", metaInfo];
+			dispatchEvent
+				( new HTTPStreamingIndexHandlerEvent
+					( HTTPStreamingIndexHandlerEvent.NOTIFY_SCRIPT_DATA, false, false, live, 0, null, null, null, null, false, 0, sdo, false, true)
+				);
+		}
 	}
 }

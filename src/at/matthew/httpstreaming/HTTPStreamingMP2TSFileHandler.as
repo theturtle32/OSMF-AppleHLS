@@ -106,8 +106,8 @@ package at.matthew.httpstreaming
 			// fourth byte
 			value = packet.readUnsignedByte();
 			var scramblingControl:uint = (value >> 6) & 0x03;	// scrambling control bits
-			var hasAF:Boolean = (value & 0x20);	// has adaptation field
-			var hasPD:Boolean = (value & 0x10);	// has payload data
+			var hasAF:Boolean = Boolean(value & 0x20);	// has adaptation field
+			var hasPD:Boolean = Boolean(value & 0x10);	// has payload data
 			var ccount:uint = value & 0x0f;		// continuty count
 			
 			// technically hasPD without hasAF is an error, see spec

@@ -32,13 +32,17 @@
 		private var _url:String;
 		private var _manifest:Vector.<HTTPStreamingM3U8IndexItem>;
 		private var _totalTime:Number;
+		private var _sequenceNumber:int; // Stores the #EXT-X-MEDIA-SEQUENCE value for the current manifest (needed for live streaming)
+		private var _live:Boolean;
 		
-		public function HTTPStreamingM3U8IndexRateItem(bw:Number = 0, url:String = null)
+		public function HTTPStreamingM3U8IndexRateItem(bw:Number = 0, url:String = null, seqNum:int = 0, live:Boolean = true) // Live is true for all streams until we get a #EXT-X-ENDLIST tag
 		{
 			_bw = bw;
 			_url = url;
 			_manifest = new Vector.<HTTPStreamingM3U8IndexItem>;
 			_totalTime = 0;
+			_sequenceNumber = seqNum;
+			_live = live;
 		}
 		
 		public function get bw():Number
@@ -49,6 +53,11 @@
 		public function get url():String
 		{
 			return _url;
+		}
+		
+		public function get live():Boolean
+		{
+			return _live;
 		}
 		
 		public function get urlBase():String
@@ -63,11 +72,32 @@
 			return _totalTime;
 		}
 		
+		public function get sequenceNumber():int
+		{
+			return _sequenceNumber;
+		}
+		
+		public function setSequenceNumber(seqNum:int):void
+		{
+			_sequenceNumber = seqNum;
+		}
+		
+		public function setLive(live:Boolean):void
+		{
+			_live = live;
+		}
+		
 		public function addIndexItem(item:HTTPStreamingM3U8IndexItem):void
 		{
 			item.startTime = _totalTime;
 			_totalTime += item.duration;
 			_manifest.push(item);
+		}
+		
+		public function clearManifest():void
+		{
+			_manifest = new Vector.<HTTPStreamingM3U8IndexItem>;
+			_totalTime = 0;
 		}
 		
 		public static function sortComparison(item1:HTTPStreamingM3U8IndexRateItem, item2:HTTPStreamingM3U8IndexRateItem):Number
@@ -79,7 +109,6 @@
 		{
 			return _manifest;
 		}
-		
 		
 	}
 }
