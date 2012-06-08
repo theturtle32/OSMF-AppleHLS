@@ -67,7 +67,7 @@
 			else
 				throw new Error("This manifest handler does not understand indexInfo that is not of type String or HTTPStreamingIndexInfoString");
 		
-			if(_indexString.toLowerCase().indexOf("http://") != 0)
+			if(_indexString.toLowerCase().indexOf("http://") != 0 && _indexString.toLowerCase().indexOf("https://"))
 				throw new Error("This manifest handler does not understand indexInfo that does not appear to be a URL");
 			
 			// get the base part of the URL so that relative referenced URLs work
@@ -136,7 +136,7 @@
 							
 						var url:String;
 						
-						if(String(lines[i]).toLowerCase().indexOf("http://") == 0)
+						if(String(lines[i]).toLowerCase().indexOf("http://") == 0 || String(lines[i]).toLowerCase().indexOf("https://"))
 						{
 							url = String(lines[i]);
 						}
@@ -161,7 +161,7 @@
 						if(i > lines.length)
 							throw new Error("processIndexData: improperly terminated M3U8 file (2)");
 							
-						if(String(lines[i]).toLowerCase().indexOf("http://") == 0)
+						if(String(lines[i]).toLowerCase().indexOf("http://") == 0 || String(lines[i]).toLowerCase().indexOf("https://"))
 						{
 							url = String(lines[i]);
 						}
