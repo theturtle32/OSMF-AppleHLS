@@ -27,13 +27,19 @@
 	import __AS3__.vec.Vector;
 	
 	import flash.net.URLRequest;
+	
+	import org.osmf.events.HTTPStreamingEvent;
 	import org.osmf.events.HTTPStreamingIndexHandlerEvent;
+	import org.osmf.events.TimeEvent;
 	import org.osmf.net.httpstreaming.HTTPStreamRequest;
+	import org.osmf.net.httpstreaming.HTTPStreamRequestKind;
 	import org.osmf.net.httpstreaming.HTTPStreamingIndexHandlerBase;
 	import org.osmf.net.httpstreaming.HTTPStreamingUtils;
+	import org.osmf.net.httpstreaming.flv.FLVTagScriptDataMode;
 	import org.osmf.net.httpstreaming.flv.FLVTagScriptDataObject;
-	import org.osmf.events.TimeEvent;
 	import org.osmf.traits.TimeTrait;
+
+
 
 	
 
@@ -67,7 +73,7 @@
 			else
 				throw new Error("This manifest handler does not understand indexInfo that is not of type String or HTTPStreamingIndexInfoString");
 		
-			if(_indexString.toLowerCase().indexOf("http://") != 0 && _indexString.toLowerCase().indexOf("https://"))
+			if(_indexString.toLowerCase().indexOf("http://") != 0 && _indexString.toLowerCase().indexOf("https://") == 0)
 				throw new Error("This manifest handler does not understand indexInfo that does not appear to be a URL");
 			
 			// get the base part of the URL so that relative referenced URLs work
@@ -82,6 +88,11 @@
 			dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.REQUEST_LOAD_INDEX, false, false, false, 0, null, null, new URLRequest(_indexString), null, false));
 		}	
 	
+		override public function dispose():void
+		{
+			
+		}
+		
 		override public function processIndexData(data:*, indexContext:Object):void
 		{
 			if (indexContext == null)
@@ -136,7 +147,7 @@
 							
 						var url:String;
 						
-						if(String(lines[i]).toLowerCase().indexOf("http://") == 0 || String(lines[i]).toLowerCase().indexOf("https://"))
+						if(String(lines[i]).toLowerCase().indexOf("http://") == 0 || String(lines[i]).toLowerCase().indexOf("https://") == 0)
 						{
 							url = String(lines[i]);
 						}
@@ -161,7 +172,7 @@
 						if(i > lines.length)
 							throw new Error("processIndexData: improperly terminated M3U8 file (2)");
 							
-						if(String(lines[i]).toLowerCase().indexOf("http://") == 0 || String(lines[i]).toLowerCase().indexOf("https://"))
+						if(String(lines[i]).toLowerCase().indexOf("http://") == 0 || String(lines[i]).toLowerCase().indexOf("https://") == 0)
 						{
 							url = String(lines[i]);
 						}
@@ -196,9 +207,9 @@
 				if((indexContext as HTTPStreamingM3U8IndexRateItem).live){
 					var initialOffset:Number = (indexContext as HTTPStreamingM3U8IndexRateItem).totalTime - ( 
 							( (indexContext as HTTPStreamingM3U8IndexRateItem).totalTime / (indexContext as HTTPStreamingM3U8IndexRateItem).manifest.length ) * 3); // Pantos spec section 6.3.3
-					dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.NOTIFY_INDEX_READY, false, false, true, initialOffset));
+					dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.INDEX_READY, false, false, true, initialOffset));
 				} else {
-					dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.NOTIFY_INDEX_READY, false, false, false, 0));
+					dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.INDEX_READY, false, false, false, 0));
 				}
 				
 				var nameArray:Array = new Array;
@@ -210,8 +221,7 @@
 					rateArray.push((_rateVec[i]).bw);
 				}
 				
-				
-				dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.NOTIFY_RATES, false, false, false, 0, nameArray, rateArray));
+				dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.RATES_READY, false, false, false, 0, nameArray, rateArray));
 			}
 		}
 		
@@ -262,19 +272,19 @@
 				if(_segment >= manifest.length) // Try to force a reload
 				{
 					dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.REQUEST_LOAD_INDEX, false, false, item.live, 0, null, null, new URLRequest(_rateVec[quality].url), _rateVec[quality], false));						
+					return new HTTPStreamRequest(HTTPStreamRequestKind.LIVE_STALL, null, 1.0);
 				} 
 			}
 			
 			if(_segment >= manifest.length)
 			{
-				return null;
+				return new HTTPStreamRequest(HTTPStreamRequestKind.DONE); 
 			} 
 			else
 			{
-				request = new HTTPStreamRequest((manifest[_segment]).url);
+				request = new HTTPStreamRequest(HTTPStreamRequestKind.DOWNLOAD, manifest[_segment].url);
 				
-				dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.NOTIFY_SEGMENT_DURATION, false, false, item.live, 0, null, null, null, null, false, manifest[_segment].duration ));
-				
+				dispatchEvent(new HTTPStreamingEvent(HTTPStreamingEvent.FRAGMENT_DURATION, false, false, manifest[_segment].duration));
 				++_segment;
 				++_absoluteSegment;
 			}
@@ -296,17 +306,14 @@
 		private function notifyTotalDuration(duration:Number, quality:int, live:Boolean):void
 		{
 			var sdo:FLVTagScriptDataObject = new FLVTagScriptDataObject();
-			var metaInfo:Object = metaInfo = new Object();
+			var metaInfo:Object = new Object();
 			if(!live)
 				metaInfo.duration = duration;
 			else
 				metaInfo.duration = 0;
 
 			sdo.objects = ["onMetaData", metaInfo];
-			dispatchEvent
-				( new HTTPStreamingIndexHandlerEvent
-					( HTTPStreamingIndexHandlerEvent.NOTIFY_SCRIPT_DATA, false, false, live, 0, null, null, null, null, false, 0, sdo, false, true)
-				);
+			dispatchEvent(new HTTPStreamingEvent(HTTPStreamingEvent.SCRIPT_DATA, false, false , 0, sdo, FLVTagScriptDataMode.IMMEDIATE));
 		}
 	}
 }

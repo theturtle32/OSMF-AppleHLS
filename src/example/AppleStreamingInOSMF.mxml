@@ -5,12 +5,14 @@
 	<mx:HRule width="100%"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.core.UIComponent;
 			import at.matthew.httpstreaming.HTTPStreamingM3U8NetLoader;
-			import org.osmf.media.MediaPlayer;
-			import org.osmf.elements.VideoElement;
-			import org.osmf.media.URLResource;
+			
+			import mx.core.UIComponent;
+			
 			import org.osmf.containers.MediaContainer;
+			import org.osmf.elements.VideoElement;
+			import org.osmf.media.MediaPlayer;
+			import org.osmf.media.URLResource;
 			private var osmfplayer:OSMFPlayer;
 			private var mediaPlayer:MediaPlayer;
 			private var container:MediaContainer = null;
@@ -23,8 +25,9 @@
 				videoUI.addChild(container);
 				
 				// Create the resource to play.
-				var resource:URLResource = new URLResource("http://qthttp.akamai.com.edgesuite.net/iphone_demo/Video_Content/martha_stewart/blueberry_pies/all.m3u8"); 
+				// var resource:URLResource = new URLResource("http://qthttp.akamai.com.edgesuite.net/iphone_demo/Video_Content/martha_stewart/blueberry_pies/all.m3u8"); 
 			 	// var resource:URLResource = new URLResource("http://qthttp.apple.com.edgesuite.net/1103pijanbdvaaj/sl_vod.m3u8"); 
+				var resource:URLResource = new URLResource("http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8");
 			 	var loader:HTTPStreamingM3U8NetLoader = new HTTPStreamingM3U8NetLoader();  // haven't yet got a plugin for the factory, so we need to explictly specify the loader
 	 				
 				// Create the MediaElement and add it to our container class.

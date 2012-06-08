@@ -42,11 +42,13 @@ package at.matthew.httpstreaming
 		private var _videoPID:uint;
 		private var _audioPES:HTTPStreamingMP2PESAudio;
 		private var _videoPES:HTTPStreamingMP2PESVideo;
+		private var _doubleBuffer:ByteArray;
 		
 		public function HTTPStreamingMP2TSFileHandler()
 		{
 			_audioPES = new HTTPStreamingMP2PESAudio;
 			_videoPES = new HTTPStreamingMP2PESVideo;	
+			_doubleBuffer = new ByteArray();
 		}
 		
 		override public function beginProcessFile(seek:Boolean, seekTime:Number):void

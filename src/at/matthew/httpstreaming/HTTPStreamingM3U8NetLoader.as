@@ -30,8 +30,7 @@
 	import org.osmf.media.MediaResourceBase;
 	import org.osmf.media.URLResource;
 	import org.osmf.net.httpstreaming.HTTPNetStream;
-	import org.osmf.net.httpstreaming.HTTPStreamingFileHandlerBase;
-	import org.osmf.net.httpstreaming.HTTPStreamingIndexHandlerBase;
+
 	import org.osmf.net.httpstreaming.HTTPStreamingNetLoader;
 		
 
@@ -46,11 +45,9 @@
 		
 		override protected function createNetStream(connection:NetConnection, resource:URLResource):NetStream
 		{
-			var fileHandler:HTTPStreamingFileHandlerBase = new HTTPStreamingMP2TSFileHandler();
-			var indexHandler:HTTPStreamingIndexHandlerBase = new HTTPStreamingM3U8IndexHandler();
-			var httpNetStream:HTTPNetStream = new HTTPNetStream(connection, indexHandler, fileHandler);
-			httpNetStream.manualSwitchMode = false; // set to false to use internal logic until we get OSMF to do it right
-			httpNetStream.indexInfo = new HTTPStreamingIndexInfoString(resource.url);
+			var httpNetStream:HTTPNetStream = new HTTPNetStream(connection, new HTTPStreamingM3U8Factory(), resource);
+		//	httpNetStream.manualSwitchMode = false; // set to false to use internal logic until we get OSMF to do it right
+		//	httpNetStream.indexInfo = new HTTPStreamingIndexInfoString(resource.url);
 			return httpNetStream;
 		}
 		
