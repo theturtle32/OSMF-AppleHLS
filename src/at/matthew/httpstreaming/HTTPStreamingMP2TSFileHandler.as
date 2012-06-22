@@ -66,21 +66,30 @@ package at.matthew.httpstreaming
 		
 		override public function processFileSegment(input:IDataInput):ByteArray
 		{
-			if(!_syncFound)
+			while(true)
 			{
-				if(input.readByte() == 0x47)
+				if(!_syncFound)
 				{
-					_syncFound = true;
+					if(input.bytesAvailable < 1)
+						return null;
+					
+					if(input.readByte() == 0x47)
+						_syncFound = true;
 				}
-				return null;
+				else
+				{
+					if(input.bytesAvailable < 187)
+						return null;
+					
+					_syncFound = false;
+					var packet:ByteArray = new ByteArray();
+				
+					input.readBytes(packet, 0, 187);
+				
+					return processPacket(packet);	
+				}
 			}
-
-			_syncFound = false;
-			var packet:ByteArray = new ByteArray();
-			
-			input.readBytes(packet, 0, 187);
-			
-			return processPacket(packet);	
+			return null;
 		}
 			
 		override public function endProcessFile(input:IDataInput):ByteArray
