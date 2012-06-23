@@ -203,7 +203,21 @@
 			
 			if(_loadingCount == 0 && _absoluteSegment == 0) // check for _absoluteSegement to make sure we are not reloading the manifest
 			{
+				var nameArray:Array = new Array;
+				var rateArray:Array = new Array;
+				
 				_rateVec = _rateVec.sort(HTTPStreamingM3U8IndexRateItem.sortComparison);
+				
+				for(i = 0; i<_rateVec.length; i++)
+				{
+					nameArray.push((_rateVec[i]).url);
+					rateArray.push((_rateVec[i]).bw);
+				}
+				
+				//danielr - dispatch the rates first
+				dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.RATES_READY, false, false, false, 0, nameArray, rateArray));
+				
+				
 				if((indexContext as HTTPStreamingM3U8IndexRateItem).live){
 					var initialOffset:Number = (indexContext as HTTPStreamingM3U8IndexRateItem).totalTime - ( 
 							( (indexContext as HTTPStreamingM3U8IndexRateItem).totalTime / (indexContext as HTTPStreamingM3U8IndexRateItem).manifest.length ) * 3); // Pantos spec section 6.3.3
@@ -212,16 +226,7 @@
 					dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.INDEX_READY, false, false, false, 0));
 				}
 				
-				var nameArray:Array = new Array;
-				var rateArray:Array = new Array;
 				
-				for(i = 0; i<_rateVec.length; i++)
-				{
-					nameArray.push((_rateVec[i]).url);
-					rateArray.push((_rateVec[i]).bw);
-				}
-				
-				dispatchEvent(new HTTPStreamingIndexHandlerEvent(HTTPStreamingIndexHandlerEvent.RATES_READY, false, false, false, 0, nameArray, rateArray));
 			}
 		}
 		
