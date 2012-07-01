@@ -117,6 +117,7 @@
 			}
 			
 			var i:int;
+			var discontinuityExpected:Boolean = false;
 			for(i=1; i<lines.length; i++)
 			{
 				
@@ -181,18 +182,26 @@
 							url = (indexContext as HTTPStreamingM3U8IndexRateItem).urlBase + String(lines[i]);
 						}
 						
-						var manifestItem:HTTPStreamingM3U8IndexItem = new HTTPStreamingM3U8IndexItem(duration, url);
+						var manifestItem:HTTPStreamingM3U8IndexItem = new HTTPStreamingM3U8IndexItem(duration, url, discontinuityExpected);
 						(indexContext as HTTPStreamingM3U8IndexRateItem).addIndexItem(manifestItem);
+						discontinuityExpected = false;
+						continue;
+					}
+					if(String(lines[i]).indexOf("#EXT-X-DISCONTINUITY") === 0) {
+						discontinuityExpected = true;
+						continue;
 					}
 					if(String(lines[i]).indexOf("#EXT-X-ENDLIST") == 0)
 					{
 						//  This is not a live stream
 						(indexContext as HTTPStreamingM3U8IndexRateItem).setLive(false);
+						continue;
 					}
 					if(String(lines[i]).indexOf("#EXT-X-MEDIA-SEQUENCE") == 0)
 					{
 						var sequence:Number = parseFloat(String(lines[i]).substr(22));	//22 is length of "#EXT-X-MEDIA-SEQUENCE:"
 						(indexContext as HTTPStreamingM3U8IndexRateItem).setSequenceNumber(sequence); // Set rateItem.sequenceNumber = sequence;
+						continue;
 					}	
 				}
 			}
@@ -290,6 +299,12 @@
 				request = new HTTPStreamRequest(HTTPStreamRequestKind.DOWNLOAD, manifest[_segment].url);
 				
 				dispatchEvent(new HTTPStreamingEvent(HTTPStreamingEvent.FRAGMENT_DURATION, false, false, manifest[_segment].duration));
+				
+				if (manifest[_segment].discontinuity) {
+					trace("Discontinuity - firing DISCONTINUITY event.");
+					dispatchEvent(new HTTPStreamingEvent(HTTPStreamingEvent.DISCONTINUITY));
+				}
+				
 				++_segment;
 				++_absoluteSegment;
 			}

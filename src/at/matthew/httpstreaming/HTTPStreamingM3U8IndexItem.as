@@ -29,11 +29,13 @@
 		private var _duration:Number;
 		private var _url:String;
 		private var _startTime:Number;
+		private var _discontinuity:Boolean;
 		
-		public function HTTPStreamingM3U8IndexItem(duration:Number, url:String)
+		public function HTTPStreamingM3U8IndexItem(duration:Number, url:String, discontinuity:Boolean = false)
 		{
 			_duration = duration;
 			_url = url;
+			_discontinuity = discontinuity;
 		}
 		
 		public function set startTime(time:Number):void
@@ -54,6 +56,11 @@
 		public function get url():String
 		{
 			return _url;
+		}
+		
+		public function get discontinuity():Boolean
+		{
+			return _discontinuity;
 		}
 	}
 }

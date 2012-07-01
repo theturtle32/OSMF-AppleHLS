@@ -44,11 +44,15 @@ package at.matthew.httpstreaming
 		private var _videoPES:HTTPStreamingMP2PESVideo;
 		private var _doubleBuffer:ByteArray;
 		
+		private var _cachedOutputBytes:ByteArray;
+		private var alternatingYieldCounter:int = 0;
+		
 		public function HTTPStreamingMP2TSFileHandler()
 		{
 			_audioPES = new HTTPStreamingMP2PESAudio;
 			_videoPES = new HTTPStreamingMP2PESVideo;	
 			_doubleBuffer = new ByteArray();
+			alternatingYieldCounter = 0;
 		}
 		
 		override public function beginProcessFile(seek:Boolean, seekTime:Number):void
@@ -58,20 +62,26 @@ package at.matthew.httpstreaming
 
 		override public function get inputBytesNeeded():Number
 		{
-			if(_syncFound)
-				return 187;
-			else
-				return 1;
+			return _syncFound ? 187 : 1;
 		}
 		
 		override public function processFileSegment(input:IDataInput):ByteArray
 		{
-			while(true)
-			{
+			var bytesAvailableStart:uint = input.bytesAvailable;
+			var output:ByteArray;
+			if (_cachedOutputBytes !== null) {
+				output = _cachedOutputBytes;
+				_cachedOutputBytes = null;
+			}
+			else {
+				output = new ByteArray();
+			}
+			
+			while (true) {
 				if(!_syncFound)
 				{
 					if(input.bytesAvailable < 1)
-						return null;
+						break;
 					
 					if(input.readByte() == 0x47)
 						_syncFound = true;
@@ -79,22 +89,37 @@ package at.matthew.httpstreaming
 				else
 				{
 					if(input.bytesAvailable < 187)
-						return null;
+						break;
 					
 					_syncFound = false;
 					var packet:ByteArray = new ByteArray();
 				
 					input.readBytes(packet, 0, 187);
-				
-					return processPacket(packet);	
+					
+					var result:ByteArray = processPacket(packet);
+					if (result !== null) {
+						output.writeBytes(result);
+					}
+					
+					if (bytesAvailableStart - input.bytesAvailable > 10000) {
+						alternatingYieldCounter = (alternatingYieldCounter + 1) & 0x03;
+						if (alternatingYieldCounter & 0x01 === 1) {
+							_cachedOutputBytes = output;
+							return null;
+						}
+						break;
+					}
 				}
 			}
-			return null;
+			return output.length === 0 ? null : output;
 		}
 			
 		override public function endProcessFile(input:IDataInput):ByteArray
 		{
-			return null;	
+//			var returnBytes:ByteArray = _cachedOutputBytes;
+//			_cachedOutputBytes = null;
+//			return _cachedOutputBytes;
+			return null;
 		}
 		
 		private function processPacket(packet:ByteArray):ByteArray
@@ -151,13 +176,13 @@ package at.matthew.httpstreaming
 			{
 				if(pusi)
 					processPAT(packet);
-				return null;
+				return new ByteArray();
 			}
 			else if(pid == _pmtPID)
 			{
 				if(pusi)
 					processPMT(packet);
-				return null;
+				return new ByteArray();
 			}
 			else if(pid == _audioPID)
 			{
@@ -169,7 +194,7 @@ package at.matthew.httpstreaming
 			}
 			else
 			{
-				return null;	// ignore all other pids
+				return new ByteArray();	// ignore all other pids
 			}
 		}
 		
@@ -249,7 +274,14 @@ package at.matthew.httpstreaming
 		
 		override public function flushFileSegment(input:IDataInput):ByteArray
 		{
-			var flvBytes:ByteArray = new ByteArray();
+			var flvBytes:ByteArray;
+//			if (_cachedOutputBytes) {
+//				flvBytes = _cachedOutputBytes;
+//				_cachedOutputBytes = null;
+//			}
+//			else {
+				flvBytes = new ByteArray();
+//			}
 			var flvBytesVideo:ByteArray = null;
 			var flvBytesAudio:ByteArray = null;
 			

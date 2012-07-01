@@ -30,7 +30,6 @@
 	import org.osmf.media.MediaResourceBase;
 	import org.osmf.media.URLResource;
 	import org.osmf.net.httpstreaming.HTTPNetStream;
-
 	import org.osmf.net.httpstreaming.HTTPStreamingNetLoader;
 		
 
@@ -38,9 +37,25 @@
 	{
 		override public function canHandleResource(resource:MediaResourceBase):Boolean
 		{
-			// really should check the resource to see if it is a URL resource that ends in m3u8, then it can be tied
-			// to the factory via a plugin and do the right thing
-			return true; //(resource.getMetadataValue(MetadataNamespaces.HTTP_STREAMING_METADATA) as Metadata) != null;
+			if (resource !== null && resource is URLResource) {
+				var urlResource:URLResource = URLResource(resource);
+				if (urlResource.url.search(/(https?|file)\:\/\/.*?\.m3u8(\?.*)?/i) !== -1) {
+					return true;
+				}
+				
+				var contentType:Object = urlResource.getMetadataValue("at.matthew.httpstreaming.content_type");
+				if (contentType && contentType is String) {
+					// If the filename doesn't include a .m3u8 extension, but
+					// explicit content-type metadata is found on the
+					// URLResource, we can handle it.  Must be either of:
+					// - "application/x-mpegURL"
+					// - "vnd.apple.mpegURL"
+					if ((contentType as String).search(/(application\/x-mpegURL|vnd.apple.mpegURL)/i) !== -1) {
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 		
 		override protected function createNetStream(connection:NetConnection, resource:URLResource):NetStream

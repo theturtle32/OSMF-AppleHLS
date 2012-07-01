@@ -60,7 +60,7 @@ package at.matthew.httpstreaming
 				packet.position += 3;
 				// Need PTS and DTS
 				var flags:uint = (packet.readUnsignedByte() & 0xc0) >> 6;
-				if(flags != 0x03) { 
+				if(flags & 0x03 !== 0x03) { 
 					trace("video PES packet without both PTS and DTS");
 				}
 				
