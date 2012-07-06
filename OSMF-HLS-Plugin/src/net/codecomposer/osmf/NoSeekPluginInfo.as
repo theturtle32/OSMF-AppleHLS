@@ -1,31 +1,28 @@
-package at.matthew.httpstreaming
+package net.codecomposer.osmf
 {
-	import org.osmf.elements.VideoElement;
 	import org.osmf.media.MediaElement;
 	import org.osmf.media.MediaFactoryItem;
 	import org.osmf.media.MediaFactoryItemType;
+	import org.osmf.media.MediaPlayer;
 	import org.osmf.media.MediaResourceBase;
 	import org.osmf.media.PluginInfo;
 	import org.osmf.media.URLResource;
 	
-	public class HLSPluginInfo extends PluginInfo
+	public class NoSeekPluginInfo extends PluginInfo
 	{
-		public function HLSPluginInfo(mediaFactoryItems:Vector.<MediaFactoryItem>=null, mediaElementCreationNotificationFunction:Function=null)
+		private var mediaPlayer:MediaPlayer;
+		
+		public function NoSeekPluginInfo(mediaFactoryItems:Vector.<MediaFactoryItem>=null, mediaElementCreationNotificationFunction:Function=null)
 		{
-			if (mediaFactoryItems !== null) {
-				trace("mediaFactoryItems already initialized and passed to HLSPluginInfo constructor.  This is unsupported.");
-			}
-			
 			mediaFactoryItems = new Vector.<MediaFactoryItem>();
-			mediaFactoryItems.push(
-				new MediaFactoryItem(
-					"at.matthew.httpstreaming.HLSPlugin",
-					canHandleResourceFunction,
-					mediaElementCreationFunction,
-					MediaFactoryItemType.STANDARD
-				)
+			var item:MediaFactoryItem = new MediaFactoryItem(
+				"net.codecomposer.osmf.NoSeekPlugin",
+				canHandleResourceFunction,
+				mediaElementCreationFunction,
+				MediaFactoryItemType.PROXY
 			);
-
+			mediaFactoryItems.push(item);
+			
 			super(mediaFactoryItems, mediaElementCreationNotificationFunction);
 		}
 		
@@ -43,7 +40,7 @@ package at.matthew.httpstreaming
 				return true;
 			}
 			
-			var contentType:Object = urlResource.getMetadataValue("content-type");
+			var contentType:Object = urlResource.getMetadataValue("at.matthew.httpstreaming.content_type");
 			if (contentType && contentType is String) {
 				if ((contentType as String).search(/(application\/x-mpegURL|vnd.apple.mpegURL)/i) !== -1) {
 					return true;
@@ -54,13 +51,13 @@ package at.matthew.httpstreaming
 		}
 		
 		private function mediaElementCreationFunction():MediaElement {
-			var loader:HTTPStreamingM3U8NetLoader = new HTTPStreamingM3U8NetLoader();
-			var element:VideoElement = new VideoElement(null, loader);
+			var element:UnseekableProxyElement = new UnseekableProxyElement(null);
+			element.mediaPlayer = mediaPlayer;
 			return element;
 		}
 		
 		override public function initializePlugin(resource:MediaResourceBase):void {
-			
+			mediaPlayer = resource.getMetadataValue("MediaPlayer") as MediaPlayer;
 		}
 	}
 }

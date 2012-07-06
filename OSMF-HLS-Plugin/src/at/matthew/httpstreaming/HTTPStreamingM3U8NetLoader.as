@@ -43,7 +43,7 @@
 					return true;
 				}
 				
-				var contentType:Object = urlResource.getMetadataValue("at.matthew.httpstreaming.content_type");
+				var contentType:Object = urlResource.getMetadataValue("content-type");
 				if (contentType && contentType is String) {
 					// If the filename doesn't include a .m3u8 extension, but
 					// explicit content-type metadata is found on the

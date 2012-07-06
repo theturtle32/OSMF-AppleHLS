@@ -2,6 +2,8 @@
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="at.matthew.httpstreaming.HLSPluginInfo"/>
+    <classEntry path="net.codecomposer.osmf.NoSeekPluginInfo"/>
+    <classEntry path="net.codecomposer.osmf.UnseekableProxyElement"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
