@@ -70,9 +70,11 @@ package net.codecomposer.osmf
 			blockedTraits = new Vector.<String>();
 			var seekTrait:SeekTrait = mediaPlayer.media.getTrait(MediaTraitType.SEEK) as SeekTrait;
 			if (seekTrait) {
-				// Rewind, since the auto-rewind breaks when we disable seeking.
-				// TODO: Only auto-rewind if the player is configured to do so.
-				seekTrait.seek(0);
+				// For some reason, autoRewind breaks with this plugin so we
+				// have to do it manually.
+				if (mediaPlayer && mediaPlayer.autoRewind) {
+					seekTrait.seek(0);
+				}
 			}
 			enableSeeking(false);
 		}
