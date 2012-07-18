@@ -73,7 +73,7 @@
 			else
 				throw new Error("This manifest handler does not understand indexInfo that is not of type String or HTTPStreamingIndexInfoString");
 		
-			if(_indexString.toLowerCase().indexOf("http://") != 0 && _indexString.toLowerCase().indexOf("https://") == 0)
+			if(_indexString.toLowerCase().indexOf("http://") != 0 && _indexString.toLowerCase().indexOf("https://") != 0)
 				throw new Error("This manifest handler does not understand indexInfo that does not appear to be a URL");
 			
 			// get the base part of the URL so that relative referenced URLs work
