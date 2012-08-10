@@ -22,8 +22,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
  
- package at.matthew.httpstreaming
-{
+ package at.matthew.httpstreaming {
 	import flash.utils.ByteArray;
 		
 	internal class HTTPStreamingMP2PESBase

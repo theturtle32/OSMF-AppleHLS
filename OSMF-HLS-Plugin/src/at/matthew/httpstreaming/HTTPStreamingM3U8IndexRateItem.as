@@ -22,9 +22,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
  
- package at.matthew.httpstreaming
-{
-	import __AS3__.vec.Vector;
+ package at.matthew.httpstreaming {
 	
 	internal class HTTPStreamingM3U8IndexRateItem
 	{

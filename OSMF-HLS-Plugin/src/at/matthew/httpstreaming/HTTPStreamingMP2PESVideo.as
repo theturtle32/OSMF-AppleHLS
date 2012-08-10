@@ -22,13 +22,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
  
-package at.matthew.httpstreaming
-{
-	import __AS3__.vec.Vector;
-	
-	import flash.utils.ByteArray;
-	
+package at.matthew.httpstreaming {
 	import org.osmf.net.httpstreaming.flv.FLVTagVideo;
+
+	import flash.utils.ByteArray;
 
 	internal class HTTPStreamingMP2PESVideo extends HTTPStreamingMP2PESBase
 	{

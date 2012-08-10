@@ -89,9 +89,6 @@ package org.osmf.events
 		 */
 		public static const FRAGMENT_DURATION:String = "fragmentDuration";
 
-		
-		public static const DISCONTINUITY:String = "discontinuity";
-		
 		/**
 		 * Dispatched when the file handler has encounter an error.
 		 */
@@ -118,6 +115,8 @@ package org.osmf.events
 		 * played back
 		 */	
 		public static const RUN_ALGORITHM:String = "runAlgorithm";
+		
+		public static const DISCONTINUITY:String = "discontinuity";
 
 		/**
 		 * Default constructor.
@@ -131,7 +130,7 @@ package org.osmf.events
 				scriptDataMode:String = FLVTagScriptDataMode.NORMAL,
 				url:String = null,
 				bytesDownloaded:uint = 0,
-				reason:String = HTTPStreamingEventReason.NORMAL,
+				reason:String = "normal",
 				downloader:HTTPStreamDownloader = null
 				)
 		{

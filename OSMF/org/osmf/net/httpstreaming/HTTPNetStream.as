@@ -123,7 +123,6 @@ package org.osmf.net.httpstreaming
 			addEventListener(HTTPStreamingEvent.TRANSITION, 			onTransition);
 			addEventListener(HTTPStreamingEvent.TRANSITION_COMPLETE, 	onTransitionComplete);
 			addEventListener(HTTPStreamingEvent.ACTION_NEEDED, 			onActionNeeded);
-			addEventListener(HTTPStreamingEvent.DISCONTINUITY, onDiscontinuity);
 			addEventListener(HTTPStreamingEvent.DOWNLOAD_ERROR,			onDownloadError);
 			
 			addEventListener(HTTPStreamingEvent.DOWNLOAD_COMPLETE,		onDownloadComplete);
@@ -767,15 +766,12 @@ package org.osmf.net.httpstreaming
 							processed += processAndAppend(bytes);	
 						}
 						
-						var bytesLength:int = (bytes == null) ? -1 : bytes.length;
-						
 						if (
 							    (_state != HTTPStreamingState.PLAY) 	// we are no longer in play mode
 							 || (bytes == null) 						// or we don't have any additional data
 							 || (processed >= OSMFSettings.hdsBytesProcessingLimit) 	// or we have processed enough data  
 						)
 						{
-//							trace("State: " + _state + " bytesNull: " + (bytes == null) + " bytesLength: " + bytesLength + " processed: " + processed);
 							keepProcessing = false;
 						}
 					}
@@ -1647,37 +1643,6 @@ package org.osmf.net.httpstreaming
 				header.write(headerBytes);
 				attemptAppendBytes(headerBytes);
 			}
-		}
-		
-		/**
-		 * @private
-		 * 
-		 * We need to do an append bytes action to reset internal state of the NetStream.
-		 */
-		private function onDiscontinuity(event:HTTPStreamingEvent):void
-		{
-				CONFIG::LOGGING
-				{
-					logger.debug("Timecode discontinuity: We need to to an appendBytesAction in order to reset NetStream internal state");
-				}
-				
-				CONFIG::FLASH_10_1
-				{
-					appendBytesAction(NetStreamAppendBytesAction.RESET_BEGIN);
-				}
-				
-				// Before we feed any TCMessages to the Flash Player, we must feed
-				// an FLV header first.
-				var header:FLVHeader = new FLVHeader();
-				var headerBytes:ByteArray = new ByteArray();
-				header.write(headerBytes);
-				attemptAppendBytes(headerBytes);
-				
-				if (_flvParser) {
-					var bytes:ByteArray = new ByteArray();
-					_flvParser.flush(bytes);
-					_flvParser = null;
-				}
 		}
 		
 		/**

@@ -23,12 +23,11 @@
  * ***** END LICENSE BLOCK ***** */
  
  
-package at.matthew.httpstreaming
-{
+package at.matthew.httpstreaming {
+	import org.osmf.net.httpstreaming.HTTPStreamingFileHandlerBase;
+
 	import flash.utils.ByteArray;
 	import flash.utils.IDataInput;
-	
-	import org.osmf.net.httpstreaming.HTTPStreamingFileHandlerBase;
 	
 	[Event(name="notifySegmentDuration", type="org.osmf.events.HTTPStreamingFileHandlerEvent")]
 	[Event(name="notifyTimeBias", type="org.osmf.events.HTTPStreamingFileHandlerEvent")]	

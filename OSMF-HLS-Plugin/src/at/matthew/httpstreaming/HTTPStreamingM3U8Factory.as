@@ -22,14 +22,13 @@
 *
 * ***** END LICENSE BLOCK ***** */
 
-package at.matthew.httpstreaming
-{
-	import org.osmf.net.httpstreaming.HTTPStreamingFactory;
+package at.matthew.httpstreaming {
 	import org.osmf.media.MediaResourceBase;
+	import org.osmf.media.URLResource;
+	import org.osmf.net.httpstreaming.HTTPStreamingFactory;
 	import org.osmf.net.httpstreaming.HTTPStreamingFileHandlerBase;
 	import org.osmf.net.httpstreaming.HTTPStreamingIndexHandlerBase;
 	import org.osmf.net.httpstreaming.HTTPStreamingIndexInfoBase;
-	import org.osmf.media.URLResource;
 	
 	public class HTTPStreamingM3U8Factory extends HTTPStreamingFactory
 	{

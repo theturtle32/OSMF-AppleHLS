@@ -22,15 +22,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
  
- package at.matthew.httpstreaming
-{
-	import flash.net.NetConnection;
-	import flash.net.NetStream;
-	
+ package at.matthew.httpstreaming {
 	import org.osmf.media.MediaResourceBase;
 	import org.osmf.media.URLResource;
 	import org.osmf.net.httpstreaming.HTTPNetStream;
 	import org.osmf.net.httpstreaming.HTTPStreamingNetLoader;
+
+	import flash.net.NetConnection;
+	import flash.net.NetStream;
 		
 
 	public class HTTPStreamingM3U8NetLoader extends HTTPStreamingNetLoader
