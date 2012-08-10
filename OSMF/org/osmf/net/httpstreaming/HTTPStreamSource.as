@@ -109,7 +109,6 @@ package org.osmf.net.httpstreaming
 			_indexHandler.addEventListener(HTTPStreamingIndexHandlerEvent.REQUEST_LOAD_INDEX, onRequestLoadIndex);
 			_indexHandler.addEventListener(DVRStreamInfoEvent.DVRSTREAMINFO, onDVRStreamInfo);
 			_indexHandler.addEventListener(HTTPStreamingEvent.FRAGMENT_DURATION, onFragmentDuration);
-			_indexHandler.addEventListener(HTTPStreamingEvent.DISCONTINUITY, onDiscontinuity);
 			_indexHandler.addEventListener(HTTPStreamingEvent.SCRIPT_DATA, onScriptData);
 			_indexHandler.addEventListener(HTTPStreamingEvent.INDEX_ERROR, onError);
 			
@@ -237,7 +236,6 @@ package org.osmf.net.httpstreaming
 			
 			_indexHandler.dispose();
 			
-			_discontinuityOnNextSegment = false;
 			_endFragment = true;
 			_endOfStream = true;
 			_streamName = null;
@@ -555,15 +553,6 @@ package org.osmf.net.httpstreaming
 						input =  _downloader.getBytes(_fileHandler.inputBytesNeeded);
 						if (input != null)
 						{
-							if (_discontinuityOnNextSegment) {
-								CONFIG::LOGGING {
-									logger.debug("Timecode Discontinuity: Dispatching DISCONTINUITY event");
-								}
-								_dispatcher.dispatchEvent(
-									new HTTPStreamingEvent(HTTPStreamingEvent.DISCONTINUITY)
-								);
-								_discontinuityOnNextSegment = false;
-							}
 							bytes = _fileHandler.processFileSegment(input);
 						}
 						else
@@ -594,11 +583,6 @@ package org.osmf.net.httpstreaming
 						{
 							bytes = _fileHandler.endProcessFile(input);
 						}
-						if (bytes === null) {
-							bytes = new ByteArray();
-						}
-						var flushBytes:ByteArray = _fileHandler.flushFileSegment(new ByteArray());
-						bytes.writeBytes(flushBytes);
 					}
 					
 					var availableQualityLevels:Vector.<QualityLevel> = new Vector.<QualityLevel>;
@@ -808,10 +792,6 @@ package org.osmf.net.httpstreaming
 			_fragmentDuration = event.fragmentDuration;
 		}
 		
-		private function onDiscontinuity(event:HTTPStreamingEvent):void {
-			_discontinuityOnNextSegment = true;
-		}
-		
 		/**
 		 * @private
 		 * 
@@ -989,8 +969,6 @@ package org.osmf.net.httpstreaming
 		private var _desiredQualityLevel:int = -1;
 		private var _desiredQualityStreamName:String = null;
 		private var _qualityAndStreamNameInSync:Boolean = false;
-		
-		private var _discontinuityOnNextSegment:Boolean = false;
 		
 		private var _fragmentDuration:Number = 0;
 		private var _endFragment:Boolean = false;

@@ -1,5 +1,4 @@
-package at.matthew.httpstreaming
-{
+package at.matthew.httpstreaming {
 	import org.osmf.elements.VideoElement;
 	import org.osmf.media.MediaElement;
 	import org.osmf.media.MediaFactoryItem;

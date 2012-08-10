@@ -22,8 +22,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
  
- package at.matthew.httpstreaming
-{
+ package at.matthew.httpstreaming {
 	import org.osmf.net.httpstreaming.HTTPStreamingIndexInfoBase;
 
 	public class HTTPStreamingIndexInfoString extends HTTPStreamingIndexInfoBase

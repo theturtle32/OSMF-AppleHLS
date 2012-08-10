@@ -22,32 +22,27 @@
  *
  * ***** END LICENSE BLOCK ***** */
  
- package at.matthew.httpstreaming
-{
-	import __AS3__.vec.Vector;
-	
-	import flash.net.URLRequest;
-	
+ package at.matthew.httpstreaming {
 	import org.osmf.events.HTTPStreamingEvent;
 	import org.osmf.events.HTTPStreamingIndexHandlerEvent;
-	import org.osmf.events.TimeEvent;
 	import org.osmf.net.httpstreaming.HTTPStreamRequest;
 	import org.osmf.net.httpstreaming.HTTPStreamRequestKind;
 	import org.osmf.net.httpstreaming.HTTPStreamingIndexHandlerBase;
-	import org.osmf.net.httpstreaming.HTTPStreamingUtils;
 	import org.osmf.net.httpstreaming.flv.FLVTagScriptDataMode;
 	import org.osmf.net.httpstreaming.flv.FLVTagScriptDataObject;
-	import org.osmf.traits.TimeTrait;
+
+	import flash.net.URLRequest;
+	
 
 
 
 	
 
-	[Event(name="notifyIndexReady", type="org.osmf.events.HTTPStreamingFileIndexHandlerEvent")]
-	[Event(name="notifyRates", type="org.osmf.events.HTTPStreamingFileIndexHandlerEvent")]
-	[Event(name="notifyTotalDuration", type="org.osmf.events.HTTPStreamingFileIndexHandlerEvent")]
-	[Event(name="requestLoadIndex", type="org.osmf.events.HTTPStreamingFileIndexHandlerEvent")]
-	[Event(name="notifyError", type="org.osmf.events.HTTPStreamingFileIndexHandlerEvent")]
+	[Event(name="notifyIndexReady", type="org.osmf.events.HTTPStreamingIndexHandlerEvent")]
+	[Event(name="notifyRates", type="org.osmf.events.HTTPStreamingIndexHandlerEvent")]
+	[Event(name="notifyTotalDuration", type="org.osmf.events.HTTPStreamingIndexHandlerEvent")]
+	[Event(name="requestLoadIndex", type="org.osmf.events.HTTPStreamingIndexHandlerEvent")]
+	[Event(name="notifyError", type="org.osmf.events.HTTPStreamingIndexHandlerEvent")]
 	[Event(name="DVRStreamInfo", type="org.osmf.events.DVRStreamInfoEvent")]
 	
 	public class HTTPStreamingM3U8IndexHandler extends HTTPStreamingIndexHandlerBase
